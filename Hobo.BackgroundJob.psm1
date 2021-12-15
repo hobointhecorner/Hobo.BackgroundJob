@@ -22,7 +22,7 @@ function Get-PsBackgroundJobTaskInfo
     )
 
     $splitName = $JobObject.Name -split ':'
-    $splitComponentCount = $splitName | measure | select -ExpandProperty Count
+    $splitComponentCount = $splitName | Measure-Object | Select-Object -ExpandProperty Count
     if ($splitComponentCount -eq 3)
     {
         New-Object psobject -Property @{ Module = $splitName[0] ; Category = $splitName[1] ; Name = $splitName[2] }
@@ -100,11 +100,11 @@ function Get-PSBackgroundJob
         else
         {
             Get-Job |
-                where { $_.Name -match $jobNameRegex } |
-                foreach { [PsBackgroundJob]::new($_) } |
-                    where { $_.Name -like $Name } |
-                    where { $_.Module -like $Module } |
-                    where { $_.Category -like $Category }
+                Where-Object { $_.Name -match $jobNameRegex } |
+                ForEach-Object { [PsBackgroundJob]::new($_) } |
+                    Where-Object { $_.Name -like $Name } |
+                    Where-Object { $_.Module -like $Module } |
+                    Where-Object { $_.Category -like $Category }
         }
     }
 }
@@ -157,7 +157,7 @@ function Stop-PsBackgroundJob
 
     begin
     {
-        if ($Id) { $PsBackgroundJob = $Id | foreach { Get-PSBackgroundJob -Id $_ } }
+        if ($Id) { $PsBackgroundJob = $Id | ForEach-Object { Get-PSBackgroundJob -Id $_ } }
     }
 
     process
@@ -182,7 +182,7 @@ function Receive-PsBackgroundJob
 
     begin
     {
-        if ($Id) { $PsBackgroundJob = $Id | foreach { Get-PSBackgroundJob -Id $_ } }
+        if ($Id) { $PsBackgroundJob = $Id | ForEach-Object { Get-PSBackgroundJob -Id $_ } }
     }
 
     process
@@ -207,7 +207,7 @@ function Remove-PsBackgroundJob
 
     begin
     {
-        if ($Id) { $PsBackgroundJob = $Id | foreach { Get-PSBackgroundJob -Id $_ } }
+        if ($Id) { $PsBackgroundJob = $Id | ForEach-Object { Get-PSBackgroundJob -Id $_ } }
     }
 
     process
