@@ -41,13 +41,15 @@ class PsBackgroundJob
     [string]$Category
     [string]$Status
     [datetime]$StartTime
-    hidden $JobObject
+    [timespan]$RunTime
+    [System.Management.Automation.Job]$JobObject
 
     PsBackgroundJob($JobObject)
     {
         $this.Id = $JobObject.Id
         $this.Status = $JobObject.State
         $this.StartTime = $JobObject.PSBeginTime
+        $this.RunTime = New-TimeSpan $this.StartTime (Get-Date)
 
         $jobInfo = Get-PsBackgroundJobTaskInfo $JobObject.Name
         $this.Module = $jobInfo.Module
@@ -148,11 +150,7 @@ function Stop-PsBackgroundJob
         [Parameter(Mandatory=$true, ValueFromPipeline=$true, ParameterSetName='PsBackgroundJob')]
         [PsBackgroundJob[]]$PsBackgroundJob,
         [Parameter(Mandatory=$true, ValueFromPipelineByPropertyName=$true, ParameterSetName='Id')]
-        [int[]]$Id,
-
-        [Parameter(ParameterSetName = 'PsBackgroundJob')]
-        [Parameter(ParameterSetName = 'Id')]
-        [switch]$Force
+        [int[]]$Id
     )
 
     begin
@@ -162,7 +160,9 @@ function Stop-PsBackgroundJob
 
     process
     {
-        foreach ($job in $PsBackgroundJob) { $job.JobObject | Stop-Job -ErrorAction Continue -Force:$Force }
+        $PsBackgroundJob |
+            Select-Object -ExpandProperty JobObject |
+                Stop-Job -ErrorAction Continue
     }
 }
 
@@ -187,7 +187,9 @@ function Receive-PsBackgroundJob
 
     process
     {
-        foreach ($job in $PsBackgroundJob) { $job.JobObject | Receive-Job -ErrorAction Continue -Force:$Force }
+        $PsBackgroundJob |
+            Select-Object -ExpandProperty JobObject |
+                Receive-Job -ErrorAction Continue -Force:$Force
     }
 }
 
@@ -212,6 +214,8 @@ function Remove-PsBackgroundJob
 
     process
     {
-        foreach ($job in $PsBackgroundJob) { $job.JobObject | Remove-Job -ErrorAction Continue -Force:$Force }
+        $PsBackgroundJob |
+            Select-Object -ExpandProperty JobObject |
+                Remove-Job -ErrorAction Continue  -Force:$Force
     }
 }
